@@ -1,4 +1,4 @@
-package com.radarnetworks.juby;
+package org.rubyhaus.juby;
 
 import java.util.Map;
 import java.util.HashMap;

@@ -53,18 +53,18 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 
   DOUT( "java.lang.Class setup" );
 
-  JUBY_CLASS = (*env)->FindClass( env, "com/radarnetworks/juby/Juby" );
+  JUBY_CLASS = (*env)->FindClass( env, "org/rubyhaus/juby/Juby" );
 
   JUBY_ISCLASS_METHOD        = (*env)->GetStaticMethodID( env, JUBY_CLASS, "isClass",        "(Ljava/lang/String;)Z" );
   JUBY_GETCLASS_METHOD       = (*env)->GetStaticMethodID( env, JUBY_CLASS, "getClass",       "(Ljava/lang/String;)Ljava/lang/Class;" );
-  JUBY_CALLMETHOD_METHOD     = (*env)->GetStaticMethodID( env, JUBY_CLASS, "callMethod",     "(Ljava/lang/Object;Ljava/lang/String;[Lcom/radarnetworks/juby/Value;)Ljava/lang/Object;" );
-  JUBY_NEWINSTANCE_METHOD    = (*env)->GetStaticMethodID( env, JUBY_CLASS, "newInstance",     "(Ljava/lang/Class;[Lcom/radarnetworks/juby/Value;)Ljava/lang/Object;" );
+  JUBY_CALLMETHOD_METHOD     = (*env)->GetStaticMethodID( env, JUBY_CLASS, "callMethod",     "(Ljava/lang/Object;Ljava/lang/String;[Lorg/rubyhaus/juby/Value;)Ljava/lang/Object;" );
+  JUBY_NEWINSTANCE_METHOD    = (*env)->GetStaticMethodID( env, JUBY_CLASS, "newInstance",     "(Ljava/lang/Class;[Lorg/rubyhaus/juby/Value;)Ljava/lang/Object;" );
   JUBY_ACCESSPROPERTY_METHOD = (*env)->GetStaticMethodID( env, JUBY_CLASS, "accessProperty", "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;" );
   JUBY_OBJECTTOS_METHOD      = (*env)->GetStaticMethodID( env, JUBY_CLASS, "objectToS",      "(Ljava/lang/Object;)Ljava/lang/String;" );
 
-  DOUT( "com.radarnetworks.juby.Juby setup" );
+  DOUT( "org.rubyhaus.juby.Juby setup" );
 
-  VALUE_CLASS = (*env)->FindClass( env, "com/radarnetworks/juby/Value" );
+  VALUE_CLASS = (*env)->FindClass( env, "org/rubyhaus/juby/Value" );
 
   if ( (*env)->ExceptionOccurred( env ) ) {
     (*env)->ExceptionDescribe( env );
@@ -74,43 +74,43 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
   VALUE_GETVALUE_METHOD = (*env)->GetMethodID( env, VALUE_CLASS, "getValue", "()J" );
 
 
-  DOUT( "com.radarnetworks.juby.Value setup" );
+  DOUT( "org.rubyhaus.juby.Value setup" );
 
   JNINativeMethod valueNativeMethods[6];
 
   valueNativeMethods[0].name = "callMethod";
   valueNativeMethods[0].signature = "(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;";
-  valueNativeMethods[0].fnPtr = Java_com_radarnetworks_juby_Value_callMethod;
+  valueNativeMethods[0].fnPtr = Java_org_rubyhaus_juby_Value_callMethod;
 
   DOUT( "callMethod registered" );
 
   valueNativeMethods[1].name = "callStringMethod";
   valueNativeMethods[1].signature = "(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;";
-  valueNativeMethods[1].fnPtr = Java_com_radarnetworks_juby_Value_callStringMethod;
+  valueNativeMethods[1].fnPtr = Java_org_rubyhaus_juby_Value_callStringMethod;
 
   DOUT( "callStringMethod registered" );
 
   valueNativeMethods[2].name = "callIntegerMethod";
   valueNativeMethods[2].signature = "(Ljava/lang/String;[Ljava/lang/Object;)I";
-  valueNativeMethods[2].fnPtr = Java_com_radarnetworks_juby_Value_callIntegerMethod;
+  valueNativeMethods[2].fnPtr = Java_org_rubyhaus_juby_Value_callIntegerMethod;
 
   DOUT( "callIntegerMethod registered" );
 
   valueNativeMethods[3].name = "callBooleanMethod";
   valueNativeMethods[3].signature = "(Ljava/lang/String;[Ljava/lang/Object;)Z";
-  valueNativeMethods[3].fnPtr = Java_com_radarnetworks_juby_Value_callBooleanMethod;
+  valueNativeMethods[3].fnPtr = Java_org_rubyhaus_juby_Value_callBooleanMethod;
 
   DOUT( "callBooleanMethod registered" );
 
   valueNativeMethods[4].name = "getRubyTypeCode";
   valueNativeMethods[4].signature = "()I";
-  valueNativeMethods[4].fnPtr = Java_com_radarnetworks_juby_Value_getRubyTypeCode;
+  valueNativeMethods[4].fnPtr = Java_org_rubyhaus_juby_Value_getRubyTypeCode;
 
   DOUT( "getRubyTypeCode registered" );
 
   valueNativeMethods[5].name = "unwrapJavaObject";
   valueNativeMethods[5].signature = "()Ljava/lang/Object;";
-  valueNativeMethods[5].fnPtr = Java_com_radarnetworks_juby_Value_unwrapJavaObject;
+  valueNativeMethods[5].fnPtr = Java_org_rubyhaus_juby_Value_unwrapJavaObject;
 
   DOUT( "unwrapJavaObject registered" );
 
