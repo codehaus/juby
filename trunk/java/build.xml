@@ -1,0 +1,19 @@
+
+<project>
+
+  <target name="compile">
+    <javac srcdir="${basedir}"/>
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar destfile="juby.jar" basedir="${basedir}" includes="**/*.class"/>
+  </target>
+
+  <target name="clean">
+    <delete file="juby.jar"/>
+    <delete>
+      <fileset dir="${basedir}" includes="**/*.class"/>
+    </delete>
+  </target>
+
+</project>

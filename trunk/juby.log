@@ -1,0 +1,26 @@
+find_library: checking for main() in -ljvm... -------------------- yes
+
+"gcc -o conftest -I/Users/bob/Documents/workspace/juby -I/usr/lib/ruby/1.8/powerpc-darwin8.0 -I/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Headers/   -arch ppc -g -Os -pipe -fno-common  -arch ppc -pipe -pipe -fno-common conftest.c  -L"/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries" -L"/usr/lib"       -ljvm  -lpthread -ldl -lobjc  "
+checked program was:
+/* begin */
+
+/*top*/
+int main() { return 0; }
+int t() { main(); return 0; }
+/* end */
+
+--------------------
+
+find_library: checking for main() in -ljvm_compat... -------------------- yes
+
+"gcc -o conftest -I/Users/bob/Documents/workspace/juby -I/usr/lib/ruby/1.8/powerpc-darwin8.0 -I/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Headers/   -arch ppc -g -Os -pipe -fno-common  -arch ppc -pipe -pipe -fno-common conftest.c  -L"/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries" -L"/usr/lib"     -ljvm   -ljvm_compat -ljvm  -lpthread -ldl -lobjc  "
+checked program was:
+/* begin */
+
+/*top*/
+int main() { return 0; }
+int t() { main(); return 0; }
+/* end */
+
+--------------------
+
