@@ -1,4 +1,4 @@
-package com.radarnetworks.juby;
+package org.rubyhaus.juby;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

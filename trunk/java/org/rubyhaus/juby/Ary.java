@@ -1,5 +1,5 @@
 
-package com.radarnetworks.juby;
+package org.rubyhaus.juby;
 
 public class Ary extends Value {
 
