@@ -2,7 +2,7 @@
 module Java
 
   def self.initialize_vm(classpath=nil)
-    Java::juby_initialize_vm( "bob.jar" )
+    Java::juby_initialize_vm( classpath )
   end
 
   def self.method_missing(sym)
