@@ -9,5 +9,6 @@ class TestStatic < Test::Unit::TestCase
     props = Java::java.lang.System.properties   
     assert_not_nil( props[ 'java.version' ] )
     assert_nil( props['something.cheesy.this.way.comes'] )
+    puts "java.version #{props['java.version']}"
   end
 end
