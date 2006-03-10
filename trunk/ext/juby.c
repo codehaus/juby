@@ -17,6 +17,7 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
   if ( classpath == Qnil ) {
     jvmClasspath = CLASSPATH_PREFIX JUBY_JAR;
   } else {
+    //TODO: free jvmClasspath
     jvmClasspath = malloc( strlen( CLASSPATH_PREFIX JUBY_JAR ) + RSTRING( classpath )->len  + 1 );
     sprintf( jvmClasspath, CLASSPATH_PREFIX "%s:" JUBY_JAR, StringValuePtr( classpath ) );
   }
@@ -37,6 +38,7 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 
   JAVA_STRING.javaClass = (*env)->FindClass( env, "java/lang/String" );
 
+  //TODO: Modify this macro to create a new GlobalRef
   setup_java_primitive( JAVA_BOOLEAN, "java/lang/Boolean", "booleanValue", "()Z" );
   setup_java_primitive( JAVA_SHORT,   "java/lang/Short",   "shortValue",   "()S" );
   setup_java_primitive( JAVA_INTEGER, "java/lang/Integer", "intValue",     "()I" );
@@ -46,6 +48,7 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 
   DOUT( "primitives setup" );
 
+  //TODO: Get a GlobalRef for this
   CLASS_CLASS = (*env)->FindClass( env, "java/lang/Class" );
   CLASS_GETNAME_METHOD = (*env)->GetMethodID( env, CLASS_CLASS, "getName", "()Ljava/lang/String;" );
   CLASS_GETSUPERCLASS_METHOD = (*env)->GetMethodID( env, CLASS_CLASS, "getSuperclass", "()Ljava/lang/Class;" );
@@ -53,6 +56,7 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 
   DOUT( "java.lang.Class setup" );
 
+  //TODO: Get a GlobalRef for this
   JUBY_CLASS = (*env)->FindClass( env, "org/rubyhaus/juby/Juby" );
 
   JUBY_ISCLASS_METHOD        = (*env)->GetStaticMethodID( env, JUBY_CLASS, "isClass",        "(Ljava/lang/String;)Z" );
@@ -64,6 +68,7 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 
   DOUT( "org.rubyhaus.juby.Juby setup" );
 
+  //TODO: Get a GlobalRef for this
   VALUE_CLASS = (*env)->FindClass( env, "org/rubyhaus/juby/Value" );
 
   if ( (*env)->ExceptionOccurred( env ) ) {
@@ -126,8 +131,10 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 void mixin(VALUE self, jclass javaClass) {
   jstring javaClassName = (*env)->CallObjectMethod( env, javaClass, CLASS_GETNAME_METHOD );
   jsize len = (*env)->GetStringUTFLength( env, javaClassName );
+  //TODO: ReleaseStringUTFChars when done
   const char* javaClassNameChars = (*env)->GetStringUTFChars( env, javaClassName, JNI_FALSE );
 
+  //TODO: free me
   char *jubyModuleName = malloc( len + 1 );
 
   int i;
@@ -140,6 +147,7 @@ void mixin(VALUE self, jclass javaClass) {
   }
   jubyModuleName[i] = 0;
 
+  //TODO: free me
   char *jubyFqModuleName = malloc( strlen( JUBY_MIXIN_PREFIX ) + len );
   sprintf( jubyFqModuleName, JUBY_MIXIN_PREFIX "%s\0", jubyModuleName );
  
@@ -181,7 +189,8 @@ VALUE juby_get_class(VALUE self, VALUE name) {
 
   result = (*env)->NewGlobalRef( env, result );
 
-  return Data_Wrap_Struct( cJavaClass, 0, 0, &result );
+  //TODO: Need a method to DeleteGlobalRef when we're done with this class
+  return Data_Wrap_Struct( cJavaClass, 0, 0, result );
 }
 
 VALUE extract_ruby_object(jobject javaObject) {
@@ -197,6 +206,7 @@ VALUE coerce_to_ruby_type(jobject javaObject) {
 	if ( ! javaObject ) {
 		return Qnil;
 	} else if ( is_instance( javaObject, JAVA_STRING ) ) {
+	  //TODO: Release these UTF Chars
 		const char *strValue = (*env)->GetStringUTFChars( env, javaObject, JNI_FALSE );
 		return rb_str_new2( strValue );
 	} else if ( is_instance( javaObject, JAVA_BOOLEAN ) ) {
@@ -222,11 +232,7 @@ VALUE wrap_with_ruby_class(jobject javaObject) {
 
   javaObject = (*env)->NewGlobalRef( env, javaObject );
 
-  jobject *heapResult = malloc( sizeof( javaObject ) );
-
-  memcpy( heapResult, &javaObject, sizeof( javaObject ) ); 
-
-  VALUE rubyResult = Data_Wrap_Struct( cJavaObject, 0, 0, heapResult );
+  VALUE rubyResult = Data_Wrap_Struct( cJavaObject, 0, object_free, javaObject );
 
   jclass javaClass = (*env)->GetObjectClass( env, javaObject );
 
@@ -253,6 +259,7 @@ VALUE wrap_with_ruby_class(jobject javaObject) {
 
 jobject wrap_for_java(VALUE rubyObject) {
   DOUT( "wrap_for_java" );
+  //TODO: How will Ruby know when this object is freed?  Will it free it from under us?  Does passing it to Java pin it?
   return (*env)->NewObject( env, VALUE_CLASS, VALUE_CONSTRUCTOR, (jlong) rubyObject );
 }
 
@@ -261,18 +268,18 @@ VALUE object_access_property(VALUE self, VALUE property) {
 
   jstring propertyUtf = (*env)->NewStringUTF( env, RSTRING( property )->ptr );
 
-  jobject *javaObject; 
-  Data_Get_Struct( self, jobject, javaObject );
+  jobject javaObject; 
+  Data_Get_Struct( self, struct _jobject, javaObject );
 
-  jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_ACCESSPROPERTY_METHOD, *javaObject, propertyUtf );
+  jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_ACCESSPROPERTY_METHOD, javaObject, propertyUtf );
 
   DOUT( "~object_access_property" );
   return coerce_to_ruby_type( result );
 }
 
 VALUE class_new_instance(VALUE self, VALUE args) {
-  jclass *javaClass; 
-  Data_Get_Struct( self, jclass, javaClass );
+  jclass javaClass; 
+  Data_Get_Struct( self, struct _jobject, javaClass );
 
   int numArgs = NUM2INT( rb_funcall( args,  rb_intern( "size" ), 0 ) );
   jobjectArray javaArgs = (*env)->NewObjectArray( env, numArgs, VALUE_CLASS, 0 );
@@ -282,7 +289,7 @@ VALUE class_new_instance(VALUE self, VALUE args) {
     (*env)->SetObjectArrayElement( env, javaArgs, i, wrap_for_java( rb_ary_entry( args, i ) ) );
   }
 
-  jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_NEWINSTANCE_METHOD, *javaClass, javaArgs );
+  jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_NEWINSTANCE_METHOD, javaClass, javaArgs );
 
   if ( (*env)->ExceptionOccurred( env ) ) {
     (*env)->ExceptionDescribe( env );
@@ -299,8 +306,8 @@ VALUE object_call_method(VALUE self, VALUE methodName, VALUE args) {
 
   jstring methodNameUtf = (*env)->NewStringUTF( env, RSTRING( methodName )->ptr );
 
-  jobject *javaObject; 
-  Data_Get_Struct( self, jobject, javaObject );
+  jobject javaObject; 
+  Data_Get_Struct( self, struct _jobject, javaObject );
 
   int numArgs = NUM2INT( rb_funcall( args,  rb_intern( "size" ), 0 ) );
   jobjectArray javaArgs = (*env)->NewObjectArray( env, numArgs, VALUE_CLASS, 0 );
@@ -310,7 +317,7 @@ VALUE object_call_method(VALUE self, VALUE methodName, VALUE args) {
     (*env)->SetObjectArrayElement( env, javaArgs, i, wrap_for_java( rb_ary_entry( args, i ) ) );
   }
 
-  jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_CALLMETHOD_METHOD, *javaObject, methodNameUtf, javaArgs );
+  jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_CALLMETHOD_METHOD, javaObject, methodNameUtf, javaArgs );
 
   if ( (*env)->ExceptionOccurred( env ) ) {
     (*env)->ExceptionDescribe( env );
@@ -324,11 +331,11 @@ VALUE object_call_method(VALUE self, VALUE methodName, VALUE args) {
 VALUE object_to_s(VALUE self) {
   DOUT( "object_to_s" );
 
-  jobject *javaObject; 
+  jobject javaObject; 
 
-  Data_Get_Struct( self, jobject, javaObject );
+  Data_Get_Struct( self, struct _jobject, javaObject );
 
-  jstring result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_OBJECTTOS_METHOD, *javaObject );
+  jstring result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_OBJECTTOS_METHOD, javaObject );
 
   if ( (*env)->ExceptionOccurred( env ) ) {
     (*env)->ExceptionDescribe( env );
@@ -339,11 +346,16 @@ VALUE object_to_s(VALUE self) {
     return rb_str_new2( "" );
   }
 
+  //TODO: Free these UTF Chars
   const char *strValue = (*env)->GetStringUTFChars( env, result, JNI_FALSE );
 
   DOUT( "~object_to_s" );
 
   return rb_str_new2( strValue );
+}
+
+void object_free(void *p) {
+  (*env)->DeleteGlobalRef(env, (jobject)p);
 }
 
 void Init_juby() {

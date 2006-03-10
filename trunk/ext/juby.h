@@ -12,6 +12,8 @@ VALUE object_access_property(VALUE self, VALUE property);
 VALUE object_call_method(VALUE self, VALUE method, VALUE args);
 VALUE object_to_s(VALUE self);
 VALUE class_new_instance(VALUE self, VALUE args);
+
+void object_free(void *p);
 void mixin(VALUE self, jclass javaClass); 
 void Init_juby();
 
