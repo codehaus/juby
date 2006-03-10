@@ -142,6 +142,23 @@ public class Juby {
 		
 		return true;
 	}
+	
+	private static boolean isPhaseTwoMatch(Class[] parameterTypes, Class[] phaseOneParameterTypes) {
+		for ( int i = 0 ; i < parameterTypes.length ; ++i ) {
+			if ( phaseOneParameterTypes[i] == null ) {
+				if ( ! isCoercibleFromRuby( parameterTypes[i] ) ) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	private static boolean isCoercibleFromRuby(Class javaType) {
+		// if string, double, float, etc, true!
+		return false;
+	}
 
 	private static Object[] coerceParameters(Value[] args, Class[] paramTypes) {
 		Object[] javaArgs = new Object[args.length];

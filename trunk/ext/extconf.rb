@@ -3,8 +3,12 @@ require 'mkmf'
 
 Logging::logfile( 'extconf.log' )
 
-$DLDFLAGS='-framework JavaVM'
-dir_config( 'jdk' )
-#find_library( 'jvm', nil )
-find_library( 'jvm_compat', nil )
+is_macosx = (/darwin/ =~ RUBY_PLATFORM)
+
+if ( is_macosx ) 
+	$DLDFLAGS='-framework JavaVM'
+	$LIBPATH << '/System/Library/Frameworks/JavaVM.framework/Libraries'
+	$CPPFLAGS << '-I"/System/Library/Frameworks/JavaVM.framework/Headers/"'
+end
+
 create_makefile( 'juby' )
