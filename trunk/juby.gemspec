@@ -10,7 +10,7 @@ spec = Gem::Specification.new do | s |
   s.platform   = Gem::Platform::RUBY
   s.summary    = "A Ruby/Java Binding"
   s.files      = [
-    'README.txt',
+    'README',
     'ext/extconf.rb',
     'ext/depend',
     'ext/juby.h',
@@ -24,6 +24,9 @@ spec = Gem::Specification.new do | s |
     'java/org/rubyhaus/juby/Value.java',
   ]
   s.extensions = [ 'java/extconf.rb', 'ext/extconf.rb' ]
+  s.test_files   = [ 
+    'tests/tc_static.rb'
+  ]
 end
 
 if $0 == __FILE__

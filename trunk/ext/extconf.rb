@@ -11,4 +11,9 @@ if ( is_macosx )
 	$CPPFLAGS << '-I"/System/Library/Frameworks/JavaVM.framework/Headers/"'
 end
 
+topdir = arg_config( '--topdir' )
+juby_jar_path = File.dirname( topdir ) + File::SEPARATOR + "java" + File::SEPARATOR + "juby.jar"
+
+$defs << "-DJUBY_JAR_PATH=\\\"#{juby_jar_path}\\\""
+
 create_makefile( 'juby' )

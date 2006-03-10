@@ -1,1 +1,10 @@
+=====================================
 Juby - an unholy mix of Java and Ruby
+=====================================
+
+Build Notes for OSX:
+
+  On my system, I have to set:
+
+  export DYLD_LIBRARY_PATH=/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries
+
