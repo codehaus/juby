@@ -7,8 +7,8 @@ is_macosx = (/darwin/ =~ RUBY_PLATFORM)
 
 if ( is_macosx ) 
 	$DLDFLAGS='-framework JavaVM'
-	$LIBPATH << '/System/Library/Frameworks/JavaVM.framework/Libraries'
-	$CPPFLAGS << '-I"/System/Library/Frameworks/JavaVM.framework/Headers/"'
+	$LIBPATH << ' /System/Library/Frameworks/JavaVM.framework/Libraries'
+	$CPPFLAGS << ' -I"/System/Library/Frameworks/JavaVM.framework/Headers/"'
 end
 
 topdir = arg_config( '--topdir' )
