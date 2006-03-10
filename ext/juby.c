@@ -15,10 +15,10 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
   char *jvmClasspath;
 
   if ( classpath == Qnil ) {
-    jvmClasspath = CLASSPATH_PREFIX JUBY_JAR;
+    jvmClasspath = CLASSPATH_PREFIX JUBY_JAR_PATH;
   } else {
     //TODO: free jvmClasspath
-    jvmClasspath = malloc( strlen( CLASSPATH_PREFIX JUBY_JAR ) + RSTRING( classpath )->len  + 1 );
+    jvmClasspath = malloc( strlen( CLASSPATH_PREFIX JUBY_JAR_PATH ) + RSTRING( classpath )->len  + 1 );
     sprintf( jvmClasspath, CLASSPATH_PREFIX "%s:" JUBY_JAR, StringValuePtr( classpath ) );
   }
 
