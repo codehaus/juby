@@ -12,6 +12,12 @@ if ( is_macosx )
 end
 
 topdir = arg_config( '--topdir' )
+
+puts "========================="
+puts "topdir is #{topdir}"
+puts "configure_args is #{$configure_args}"
+puts "========================="
+
 juby_jar_path = File.dirname( topdir ) + File::SEPARATOR + "java" + File::SEPARATOR + "juby.jar"
 
 $defs << "-DJUBY_JAR_PATH=\\\"#{juby_jar_path}\\\""
