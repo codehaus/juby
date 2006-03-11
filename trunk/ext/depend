@@ -8,6 +8,8 @@ juby_jni.h:
 
 juby_jni.o: juby_jni.h
 
+jniutil.o:	juby_jni.h
+
 clean: jniclean extconfclean
 
 jniclean:

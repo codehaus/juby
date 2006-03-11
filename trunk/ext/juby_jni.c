@@ -6,7 +6,7 @@
 VALUE _call_method(JNIEnv *env, jobject self, jstring methodName, jobjectArray args);
 
 JNIEXPORT jobject JNICALL Java_org_rubyhaus_juby_Value_unwrapJavaObject(JNIEnv *env, jobject self) {
-  VALUE rubySelf = extract_ruby_object( self );
+  VALUE rubySelf = extract_ruby_object( env, self );
 
   jobject *javaObject; 
 
@@ -16,13 +16,13 @@ JNIEXPORT jobject JNICALL Java_org_rubyhaus_juby_Value_unwrapJavaObject(JNIEnv *
 }
 
 JNIEXPORT jint JNICALL Java_org_rubyhaus_juby_Value_getRubyTypeCode(JNIEnv *env, jobject self) {
-  VALUE rubySelf = extract_ruby_object( self );
+  VALUE rubySelf = extract_ruby_object( env, self );
   return (jint) TYPE( rubySelf );
 }
 
 JNIEXPORT jobject JNICALL Java_org_rubyhaus_juby_Value_callMethod(JNIEnv *env, jobject self, jstring methodName, jobjectArray args) {
   VALUE result = _call_method( env, self, methodName, args );
-  jobject javaResult = (jobject) wrap_for_java( result );
+  jobject javaResult = (jobject) wrap_for_java( env, result );
   return javaResult;
 }
 
@@ -61,14 +61,14 @@ VALUE _call_method(JNIEnv *env, jobject self, jstring methodName, jobjectArray a
 
   int i;
   for ( i = 0 ; i < numArgs ; ++i ) {
-	rubyArgs[i] = coerce_to_ruby_type( (*env)->GetObjectArrayElement( env, args, i ) );
+	rubyArgs[i] = coerce_to_ruby_type( env, (*env)->GetObjectArrayElement( env, args, i ) );
   }
 
   const char* methodNameChars = (*env)->GetStringUTFChars( env, methodName, JNI_FALSE );
   ID methodSym = rb_intern( methodNameChars );
   (*env)->ReleaseStringUTFChars( env, methodName, methodNameChars );
 
-  VALUE rubySelf = extract_ruby_object( self );
+  VALUE rubySelf = extract_ruby_object( env, self );
 
   VALUE result = rb_funcall2( rubySelf, methodSym, numArgs, rubyArgs );
 
