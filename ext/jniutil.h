@@ -17,6 +17,10 @@ void setUpJNIUtils();
 JNIEnv *setUpJVM(const char *classpath);
 
 void setUpJavaReflection(JNIEnv *env);
+void setUpJavaPrimitives(JNIEnv *env);
+void setUpJavaClassClass(JNIEnv *env);
+void setUpJavaJubyClass(JNIEnv *env);
+void setUpJavaValueClass(JNIEnv *env );
 void setUpJavaPrimitiveClass(JNIEnv *env,  JavaPrimitiveClass *var,  const char *classSpec,  const char *name,  const char *signature);
 void registerNativeMethods(JNIEnv *env);
 

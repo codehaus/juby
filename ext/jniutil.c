@@ -79,9 +79,14 @@ JNIEnv *setUpJVM(const char *classpath) {
 
 void setUpJavaReflection(JNIEnv *env) {
 	
-	DEBUG_ENTER( "setUpJavaReflection(...)" );
-	
-	setUpJavaPrimitiveClass( env, &JAVA_STRING, "java/lang/String", 0, 0 );
+	setUpJavaPrimitives( env );
+	setUpJavaClassClass( env );
+	setUpJavaJubyClass(  env );
+	setUpJavaValueClass( env );
+}
+
+void setUpJavaPrimitives(JNIEnv *env) {
+	setUpJavaPrimitiveClass( env, &JAVA_STRING, "java/lang/String",   0,              0 );
 	setUpJavaPrimitiveClass( env, &JAVA_BOOLEAN, "java/lang/Boolean", "booleanValue", "()Z" );
 	setUpJavaPrimitiveClass( env, &JAVA_SHORT,   "java/lang/Short",   "shortValue",   "()S" );
 	setUpJavaPrimitiveClass( env, &JAVA_INTEGER, "java/lang/Integer", "intValue",     "()I" );
@@ -89,6 +94,9 @@ void setUpJavaReflection(JNIEnv *env) {
 	setUpJavaPrimitiveClass( env, &JAVA_FLOAT,   "java/lang/Float",   "floatValue",   "()F" );
 	setUpJavaPrimitiveClass( env, &JAVA_DOUBLE,  "java/lang/Double",  "doubleValue",  "()D" );	
 	
+}
+
+void setUpJavaClassClass(JNIEnv *env) {
 	CLASS_CLASS = (*env)->NewGlobalRef( env, (*env)->FindClass( env, "java/lang/Class" ) );
 	checkException( env );
 	
@@ -100,8 +108,9 @@ void setUpJavaReflection(JNIEnv *env) {
 	
 	CLASS_GETINTERFACES_METHOD = (*env)->GetMethodID( env, CLASS_CLASS, "getInterfaces", "()[Ljava/lang/Class;" );
 	checkException( env );
+}
 
-
+void setUpJavaJubyClass(JNIEnv* env) {
 	JUBY_CLASS = (*env)->NewGlobalRef( env, (*env)->FindClass( env, "org/rubyhaus/juby/Juby" ) );
 	checkException( env );
 
@@ -122,8 +131,9 @@ void setUpJavaReflection(JNIEnv *env) {
 	
 	JUBY_OBJECTTOS_METHOD      = (*env)->GetStaticMethodID( env, JUBY_CLASS, "objectToS",      "(Ljava/lang/Object;)Ljava/lang/String;" );
 	checkException( env );
+}
 
-	//TODO: Get a GlobalRef for this
+void setUpJavaValueClass(JNIEnv *env) {
 	VALUE_CLASS = (*env)->NewGlobalRef( env, (*env)->FindClass( env, "org/rubyhaus/juby/Value" ) );
 	checkException( env );
 
@@ -132,8 +142,6 @@ void setUpJavaReflection(JNIEnv *env) {
 	
 	VALUE_GETVALUE_METHOD = (*env)->GetMethodID( env, VALUE_CLASS, "getValue", "()J" );
 	checkException( env );
-	
-	DEBUG_ENTER( "setUpJavaReflection(...)" );
 }
 
 void registerNativeMethods(JNIEnv *env) {
@@ -257,11 +265,11 @@ void dumpJavaClass(JNIEnv *env, jclass javaClass) {
 	jstring name = (*env)->CallObjectMethod( env, javaClass, CLASS_GETNAME_METHOD );
 	checkException( env );
 	
-	const char *nameCstr = (*env)->GetStringUTFChars( env, name, JNI_FALSE );
+	const char *nameChars = (*env)->GetStringUTFChars( env, name, JNI_FALSE );
 	checkException( env );
 	
-	printf( "[class: %s]\n", nameCstr );
+	printf( "[class: %s]\n", nameChars );
 	
-	(*env)->ReleaseStringUTFChars( env, name, nameCstr );
+	(*env)->ReleaseStringUTFChars( env, name, nameChars );
 	checkException( env );
 }
