@@ -32,7 +32,7 @@ void mixin(JNIEnv *env, VALUE self, jclass javaClass) {
 	
 	(*env)->ReleaseStringUTFChars( env, javaClassName, javaClassNameChars );
 
-	char *jubyFqModuleName = malloc( strlen( JUBY_MIXIN_PREFIX ) + len );
+	char *jubyFqModuleName = malloc( strlen( JUBY_MIXIN_PREFIX ) + len + 1);
 	sprintf( jubyFqModuleName, JUBY_MIXIN_PREFIX "%s\0", jubyModuleName );
 	
 	free( jubyModuleName );
