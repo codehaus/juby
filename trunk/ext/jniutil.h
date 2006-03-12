@@ -20,6 +20,7 @@ void setUpJavaReflection(JNIEnv *env);
 void setUpJavaPrimitives(JNIEnv *env);
 void setUpJavaClassClass(JNIEnv *env);
 void setUpJavaJubyClass(JNIEnv *env);
+void setUpJubyInstance(JNIEnv *env);
 void setUpJavaValueClass(JNIEnv *env );
 void setUpJavaPrimitiveClass(JNIEnv *env,  JavaPrimitiveClass *var,  const char *classSpec,  const char *name,  const char *signature);
 void registerNativeMethods(JNIEnv *env);
@@ -55,10 +56,9 @@ JUBY_EXTERN jmethodID CLASS_GETINTERFACES_METHOD;
 JUBY_EXTERN jclass JUBY_CLASS;
 
 JUBY_EXTERN jmethodID JUBY_CONSTRUCTOR;
+JUBY_EXTERN jmethodID JUBY_BRIDGE_METHOD;
 JUBY_EXTERN jmethodID JUBY_GETCLASS_METHOD;
-JUBY_EXTERN jmethodID JUBY_CALLMETHOD_METHOD;
 JUBY_EXTERN jmethodID JUBY_NEWINSTANCE_METHOD;
-JUBY_EXTERN jmethodID JUBY_ACCESSPROPERTY_METHOD;
 JUBY_EXTERN jmethodID JUBY_OBJECTTOS_METHOD;
 
 JUBY_EXTERN jclass VALUE_CLASS;

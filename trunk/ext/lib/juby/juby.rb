@@ -25,15 +25,11 @@ module Java
   end
 
   class Object
-    def method_missing(name,*args)
-      if ( args.size == 0 ) 
-        access_property( name.to_s )
-      else
-        call_method( name.to_s, args )
-      end
+    def method_missing(sym, *args)
+      bridge( sym.to_s, args )
     end
-    def [](arg)
-      access_property( arg.to_s )
+    def [](sym)
+      bridge( sym.to_s, [] )
     end
   end
 
