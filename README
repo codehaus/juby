@@ -14,5 +14,7 @@ Juby - an unholy mix of Java and Ruby
 
   export DYLD_LIBRARY_PATH=/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries
 
+1.2) Build Notes for Linux:
 
+	JAVA_HOME must be set before building
 
