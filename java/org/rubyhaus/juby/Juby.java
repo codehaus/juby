@@ -18,12 +18,18 @@ public class Juby {
 	}
 
 	public Class getClass(String name) {
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		
+		if ( cl == null ) {
+			cl = getClass().getClassLoader();
+		}
+		
 		try {
-			return Class.forName(name);
+			return cl.loadClass( name );
 		} catch (Exception e) {
 			if (name.indexOf(".") < 0) {
 				try {
-					return Class.forName("java.lang." + name);
+					return cl.loadClass("java.lang." + name);
 				} catch (Exception e2) {
 				}
 			}
