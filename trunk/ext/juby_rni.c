@@ -107,23 +107,23 @@ VALUE object_to_s(VALUE self) {
 	Data_Get_Struct( self, struct _jobject, javaObject );
 
 	jstring result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_OBJECTTOS_METHOD, javaObject );
-
-	if ( (*env)->ExceptionOccurred( env ) ) {
-		(*env)->ExceptionDescribe( env );
+	
+	if ( checkException( env ) || ! result ) {
 		detachJNIEnv();
 		return rb_str_new2( "" );
 	}
 
-	if ( ! result ) {
-		detachJNIEnv();
-		return rb_str_new2( "" );
-	}
-
-	//TODO: Free these UTF Chars
-	const char *strValue = (*env)->GetStringUTFChars( env, result, JNI_FALSE );
-
+	const char *resultChars = (*env)->GetStringUTFChars( env, result, JNI_FALSE );
+	checkException( env );
+	
+	VALUE value = rb_str_new2( resultChars );
+	
+	(*env)->ReleaseStringUTFChars( env, result, resultChars );
+	checkException( env );
+	
 	detachJNIEnv();
-	return rb_str_new2( strValue );
+	
+	return value;	
 }
 
 VALUE class_new_instance(VALUE self, VALUE args) {

@@ -33,7 +33,7 @@ jfloat extractFloat(JNIEnv *env, jobject object);
 jdouble extractDouble(JNIEnv *env, jobject object);
 jboolean isInstance(JNIEnv *env, jobject javaObject, JavaPrimitiveClass *primitiveHolder);
 
-void checkException(JNIEnv *env);
+int checkException(JNIEnv *env);
 							
 JNIEnv *attachJNIEnv();
 void detachJNIEnv();

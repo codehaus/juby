@@ -261,10 +261,13 @@ jboolean isInstance(JNIEnv *env, jobject javaObject, JavaPrimitiveClass *primiti
 	return result;
 }
 
-void checkException(JNIEnv *env) {
+int checkException(JNIEnv *env) {
 	if ( (*env)->ExceptionOccurred( env ) ) {
 		(*env)->ExceptionDescribe( env );
+		return 1;
 	}
+	
+	return 0;
 }
 
 void dumpJavaClass(JNIEnv *env, jclass javaClass) {
