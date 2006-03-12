@@ -7,8 +7,9 @@
 void setUpRNI();
 
 JUBY_EXTERN VALUE mJava;
+JUBY_EXTERN VALUE mJubyJavaLangClass;
 JUBY_EXTERN VALUE cJavaPackage;
-JUBY_EXTERN VALUE cJavaClass;
+//JUBY_EXTERN VALUE cJavaClass;
 JUBY_EXTERN VALUE cJavaObject;
 
 VALUE juby_initialize_vm(VALUE self, VALUE classpath);

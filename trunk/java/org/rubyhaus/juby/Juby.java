@@ -288,7 +288,6 @@ public class Juby {
 	}
 	
 	private boolean isCoercibleFromRuby(Class javaType) {
-		// if string, double, float, etc, true!
 		return false;
 	}
 

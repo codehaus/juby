@@ -5,9 +5,12 @@
 #include "juby_rni.h"
 
 VALUE mJava;
+VALUE mJubyJavaLangClass;
 VALUE cJavaPackage;
-VALUE cJavaClass;
+//VALUE cJavaClass;
 VALUE cJavaObject;
+
+static juby_initialized;
 
 void setUpRNI() {
 	
@@ -17,7 +20,7 @@ void setUpRNI() {
 
 	cJavaPackage = rb_define_class_under( mJava, "Package", rb_cObject );
 	cJavaObject  = rb_define_class_under( mJava, "Object",  rb_cObject );
-	cJavaClass   = rb_define_class_under( mJava, "Class",   cJavaObject );
+	//cJavaClass   = rb_define_class_under( mJava, "Class",   cJavaObject );
 
 	rb_define_module_function( mJava, "juby_initialize_vm", juby_initialize_vm, 1 );
 	rb_define_module_function( mJava, "juby_get_class",     juby_get_class, 1 );
@@ -25,7 +28,10 @@ void setUpRNI() {
 	rb_define_method( cJavaObject, "bridge",          juby_bridge,     2 );
 	
 	rb_define_method( cJavaObject, "to_s",            object_to_s,            0 );
-	rb_define_method( cJavaClass,  "new_instance",    class_new_instance,     1 );
+	//rb_define_method( cJavaClass,  "new_instance",    class_new_instance,     1 );
+	
+	mJubyJavaLangClass = rb_define_module( "Juby_java_lang_Class" );
+	rb_define_module_function( mJubyJavaLangClass, "new_instance", class_new_instance, 1 );
 
 	rb_require( "juby/juby" );
 	
@@ -35,6 +41,10 @@ void setUpRNI() {
 VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 	DEBUG_ENTER( "juby_initialize_vm(...)" );
 	
+	if ( juby_initialized ) {
+		return;
+	}
+	
 	const char *classpathChars = 0;
 	
 	if ( classpath != Qnil ) {
@@ -42,6 +52,8 @@ VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 	}
 	
 	setUpJNIUtils( classpathChars );
+	
+	juby_initialized = 1;
 	DEBUG_EXIT( "juby_initialize_vm(...)" );
 }
 
@@ -55,23 +67,23 @@ VALUE juby_get_class(VALUE self, VALUE name) {
 	jstring nameUtf = (*env)->NewStringUTF( env, RSTRING( name )->ptr );
 	checkException( env );
 
-	jobject result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_GETCLASS_METHOD, nameUtf );
-	checkException( env );
-
-	if ( ! result ) {
+	jobject javaClass = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_GETCLASS_METHOD, nameUtf );
+	
+	if ( checkException( env ) || ! javaClass ) {
 		detachJNIEnv();
 		DEBUG_EXIT( "juby_get_class(...)" );
 		return Qnil;
 	}
-
-	result = (*env)->NewGlobalRef( env, result );
-	checkException( env );
-
-	detachJNIEnv();
 	
+	javaClass = (*env)->NewGlobalRef( env, javaClass );
+	checkException( env );
+	
+	VALUE rubyObj = wrap_with_ruby_class( env, javaClass );
+	
+	detachJNIEnv();
 	DEBUG_EXIT( "juby_get_class(...)" );
 	
-	return Data_Wrap_Struct( cJavaClass, 0, object_free, result );
+	return rubyObj;
 }
 
 VALUE juby_bridge(VALUE self, VALUE sym, VALUE args) {

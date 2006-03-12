@@ -31,7 +31,6 @@ void Init_juby();
 
 #define JUBY_DEBUG 0
 
-
 #define DEBUG_MSG(msg) { if ( JUBY_DEBUG ) { printf( msg ); } }
 
 #define DEBUG_ENTER(func) { if ( JUBY_DEBUG ) { printf( "debug: enter %s\n", func ); } }
