@@ -16,5 +16,9 @@ Juby - an unholy mix of Java and Ruby
 
 1.2) Build Notes for Linux:
 
-	JAVA_HOME must be set before building
+  JAVA_HOME must be set before building
+  
+  For example:
+  
+  export JAVA_HOME=/usr/local/jdk5
 

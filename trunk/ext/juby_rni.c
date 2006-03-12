@@ -50,7 +50,7 @@ VALUE juby_get_class(VALUE self, VALUE name) {
 	jstring nameUtf = (*env)->NewStringUTF( env, RSTRING( name )->ptr );
 	checkException( env );
 
-	jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_GETCLASS_METHOD, nameUtf );
+	jobject result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_GETCLASS_METHOD, nameUtf );
 	checkException( env );
 
 	if ( ! result ) {
@@ -89,7 +89,7 @@ VALUE object_call_method(VALUE self, VALUE methodName, VALUE args) {
 		checkException( env );
 	}
 
-	jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_CALLMETHOD_METHOD, javaObject, methodNameUtf, javaArgs );
+	jobject result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_CALLMETHOD_METHOD, javaObject, methodNameUtf, javaArgs );
 	checkException( env );	
 
 	VALUE value = coerce_to_ruby_type( env, result );
@@ -112,7 +112,7 @@ VALUE object_access_property(VALUE self, VALUE propertyName) {
 	jobject javaObject; 
 	Data_Get_Struct( self, struct _jobject, javaObject );
 	
-	jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_ACCESSPROPERTY_METHOD, javaObject, propertyNameUtf, 0 );
+	jobject result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_ACCESSPROPERTY_METHOD, javaObject, propertyNameUtf, 0 );
 	checkException( env );
 	
 	VALUE value = coerce_to_ruby_type( env, result );
@@ -132,7 +132,7 @@ VALUE object_to_s(VALUE self) {
 
 	Data_Get_Struct( self, struct _jobject, javaObject );
 
-	jstring result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_OBJECTTOS_METHOD, javaObject );
+	jstring result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_OBJECTTOS_METHOD, javaObject );
 
 	if ( (*env)->ExceptionOccurred( env ) ) {
 		(*env)->ExceptionDescribe( env );
@@ -170,7 +170,7 @@ VALUE class_new_instance(VALUE self, VALUE args) {
 		checkException( env );
 	}
 
-	jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_NEWINSTANCE_METHOD, javaClass, javaArgs );
+	jobject result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_NEWINSTANCE_METHOD, javaClass, javaArgs );
 	checkException( env );
 
 	VALUE value = coerce_to_ruby_type( env, result );
