@@ -4,17 +4,26 @@ Juby - an unholy mix of Java and Ruby
 
 1) General Build Notes:
 
+  1.1) Requirements
+
   Building Juby requires Ruby Gems, which can be obtained from:
 
     http://rubyforge.org/frs/?group_id=126
 
-1.1) Build Notes for OSX:
+  1.2) Developer building
+
+  From the top of the project 'make clean test' will build the gem, install
+  it under ./tmp, run the tests, and generally make sure it all works.
+
+  It *will* not install it globally in your ruby gem's repository.
+
+2) Build Notes for OSX:
 
   On my system, I have to set:
 
   export DYLD_LIBRARY_PATH=/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries
 
-1.2) Build Notes for Linux:
+3) Build Notes for Linux:
 
   JAVA_HOME must be set before building
   
@@ -22,3 +31,13 @@ Juby - an unholy mix of Java and Ruby
   
   export JAVA_HOME=/usr/local/jdk5
 
+4) Installation
+
+  'make install' as root will build the gem and then install it
+  into the correct location for your environment.
+
+
+5) Uninstallation
+
+  'make uninstall' as root will use gem to remove Juby from
+  your environment.
