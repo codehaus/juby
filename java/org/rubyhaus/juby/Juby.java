@@ -70,8 +70,122 @@ public class Juby {
 		return null;
 	}
 
-	public Object callMethod(Object self, String name, Value[] args) {
-		Method method = findMethod(self.getClass(), name, args);
+	
+	// ----------------------------------------
+	// ----------------------------------------
+
+	public Object bridge(Object object, String sym, Value[] args) {
+		Object value = null;
+		
+		if ( sym.endsWith( "=" ) ) {
+			value = bridgeAssignment( object, sym, args );
+		} else {
+			value = bridgeAccess( object, sym, args );
+		}
+		
+		return value;
+	}
+	
+	protected Object bridgeAssignment(Object object, String sym, Value[] args) {
+		return null;
+	}
+	
+	protected Object bridgeAccess(Object object, String sym, Value[] args) {
+		Object value = null;
+		
+		if ( args.length == 0 ) {
+			value = bridgeSimpleAccess( object, sym );
+		}  else {
+			value = bridgeComplexAccess( object, sym, args );
+		}
+		
+		return value;
+	}
+	
+	protected Object bridgeSimpleAccess(Object object, String sym) {
+
+		if ("class".equals(sym)) {
+			return object.getClass();
+		}
+
+		Class objectClass = null;
+
+		if (object instanceof Class) {
+			objectClass = (Class) object;
+		} else {
+			objectClass = object.getClass();
+		}
+		
+		// Special cases are required here due to some oddness (bug?)
+		// about how accessing anonymous inner-class implementations
+		// of Iterator that some Java collections return from iterator().
+
+		if ("iterator".equals(sym) && object instanceof Collection) {
+			return ((Collection) object).iterator();
+		}
+
+		if ("hasNext".equals(sym) && object instanceof Iterator) {
+			return ((Iterator) object).hasNext() ? Boolean.TRUE : Boolean.FALSE;
+		}
+
+		if ("next".equals(sym) && object instanceof Iterator) {
+			return ((Iterator) object).next();
+		}
+
+		if ("key".equals(sym) && object instanceof Map.Entry) {
+			return ((Map.Entry) object).getKey();
+		}
+
+		if ("value".equals(sym) && object instanceof Map.Entry) {
+			return ((Map.Entry) object).getValue();
+		}
+
+		try {
+			Field field = objectClass.getField(sym);
+			return field.get(object);
+		} catch (Exception e) {
+			try {
+				Method method = objectClass.getMethod(sym, new Class[0]);
+				Object value = method.invoke(object, EMPTY_OBJECT_ARRAY);
+				return value;
+			} catch (Exception e2) {
+				try {
+					String accessorName = "get"
+							+ sym.substring(0, 1).toUpperCase()
+							+ sym.substring(1);
+					Method method = objectClass.getMethod(accessorName,
+							new Class[0]);
+					return method.invoke(object, EMPTY_OBJECT_ARRAY);
+				} catch (Exception e3) {
+					try {
+						Method method = objectClass.getMethod("get",
+								new Class[] { Object.class });
+						return method.invoke(object, new Object[] { sym });
+					} catch (Exception e4) {
+						if (objectClass == object) {
+							try {
+								objectClass = object.getClass();
+								String accessorName = "get"
+										+ sym.substring(0, 1).toUpperCase()
+										+ sym.substring(1);
+								Method method = objectClass.getMethod(
+										accessorName, new Class[0]);
+								return method
+										.invoke(object, EMPTY_OBJECT_ARRAY);
+							} catch (Exception e5) {
+								// ignore
+							}
+						}
+					}
+				}
+			}
+		}
+		return null;	
+	}
+	
+	public Object bridgeComplexAccess(Object self, String sym, Value[] args) {
+		
+		Method method = findMethod(self.getClass(), sym, args);
 
 		Object result = null;
 
@@ -90,6 +204,31 @@ public class Juby {
 		return result;
 	}
 	
+	protected Method findMethod(Class selfClass, String name, Value[] args) {
+		Method[] methods = selfClass.getMethods();
+
+		METHODS: 
+			for (int i = 0; i < methods.length; ++i) {
+				if (methods[i].getName().equals(name)) {
+					int modifiers = methods[i].getModifiers();
+					if (!Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers)) {
+						Class[] paramTypes = methods[i].getParameterTypes();
+						if (paramTypes.length == args.length) {
+							for (int j = 0; j < args.length; ++j) {
+								if (!paramTypes[j].isAssignableFrom(args[j] .getJavaType())) {
+									continue METHODS;
+								}
+							}
+							return methods[i];
+						}
+					}
+				}
+			} 
+		
+		return null;
+	}
+	
+
 	/** Examine the parameters from Ruby to determine which are originally Java objects.
 	 * 
 	 * <p>This method extracts the types of any inherently Java objects passed
@@ -163,111 +302,6 @@ public class Juby {
 		}
 
 		return javaArgs;
-	}
-
-	protected Method findMethod(Class selfClass, String name, Value[] args) {
-		Method[] methods = selfClass.getMethods();
-
-		METHODS: for (int i = 0; i < methods.length; ++i) {
-			if (methods[i].getName().equals(name)) {
-				int modifiers = methods[i].getModifiers();
-				if (!Modifier.isStatic(modifiers)
-						&& Modifier.isPublic(modifiers)) {
-					Class[] paramTypes = methods[i].getParameterTypes();
-					if (paramTypes.length == args.length) {
-						for (int j = 0; j < args.length; ++j) {
-							if (!paramTypes[j].isAssignableFrom(args[j]
-									.getJavaType())) {
-								continue METHODS;
-							}
-						}
-						return methods[i];
-					}
-				}
-			}
-		}
-
-		return null;
-	}
-	
-	// ----------------------------------------------------------------------
-	// ----------------------------------------------------------------------
-
-	public Object accessProperty(Object object, String name) {
-
-		if ("jclass".equals(name)) {
-			return object.getClass();
-		}
-
-		Class objectClass = null;
-
-		if (object instanceof Class) {
-			objectClass = (Class) object;
-		} else {
-			objectClass = object.getClass();
-		}
-
-		if ("iterator".equals(name) && object instanceof Collection) {
-			return ((Collection) object).iterator();
-		}
-
-		if ("hasNext".equals(name) && object instanceof Iterator) {
-			return ((Iterator) object).hasNext() ? Boolean.TRUE : Boolean.FALSE;
-		}
-
-		if ("next".equals(name) && object instanceof Iterator) {
-			return ((Iterator) object).next();
-		}
-
-		if ("key".equals(name) && object instanceof Map.Entry) {
-			return ((Map.Entry) object).getKey();
-		}
-
-		if ("value".equals(name) && object instanceof Map.Entry) {
-			return ((Map.Entry) object).getValue();
-		}
-
-		try {
-			Field field = objectClass.getField(name);
-			return field.get(object);
-		} catch (Exception e) {
-			try {
-				Method method = objectClass.getMethod(name, new Class[0]);
-				Object value = method.invoke(object, EMPTY_OBJECT_ARRAY);
-				return value;
-			} catch (Exception e2) {
-				try {
-					String accessorName = "get"
-							+ name.substring(0, 1).toUpperCase()
-							+ name.substring(1);
-					Method method = objectClass.getMethod(accessorName,
-							new Class[0]);
-					return method.invoke(object, EMPTY_OBJECT_ARRAY);
-				} catch (Exception e3) {
-					try {
-						Method method = objectClass.getMethod("get",
-								new Class[] { Object.class });
-						return method.invoke(object, new Object[] { name });
-					} catch (Exception e4) {
-						if (objectClass == object) {
-							try {
-								objectClass = object.getClass();
-								String accessorName = "get"
-										+ name.substring(0, 1).toUpperCase()
-										+ name.substring(1);
-								Method method = objectClass.getMethod(
-										accessorName, new Class[0]);
-								return method
-										.invoke(object, EMPTY_OBJECT_ARRAY);
-							} catch (Exception e5) {
-								// ignore
-							}
-						}
-					}
-				}
-			}
-		}
-		return null;
 	}
 
 }

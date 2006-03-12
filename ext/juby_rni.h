@@ -13,6 +13,7 @@ JUBY_EXTERN VALUE cJavaObject;
 
 VALUE juby_initialize_vm(VALUE self, VALUE classpath);
 VALUE juby_get_class(VALUE self, VALUE name);
+VALUE juby_bridge(VALUE self, VALUE sym, VALUE args);
 	
 VALUE object_access_property(VALUE self, VALUE propertyName);
 VALUE object_call_method(VALUE self, VALUE methodName, VALUE args);

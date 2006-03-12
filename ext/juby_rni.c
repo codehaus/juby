@@ -22,9 +22,8 @@ void setUpRNI() {
 	rb_define_module_function( mJava, "juby_initialize_vm", juby_initialize_vm, 1 );
 	rb_define_module_function( mJava, "juby_get_class",     juby_get_class, 1 );
 
-	rb_define_method( cJavaObject, "access_property", object_access_property, 1 );
-	rb_define_method( cJavaObject, "call_method",     object_call_method,     2 );
-	rb_define_method( cJavaObject, "[",               object_access_property, 1 );
+	rb_define_method( cJavaObject, "bridge",          juby_bridge,     2 );
+	
 	rb_define_method( cJavaObject, "to_s",            object_to_s,            0 );
 	rb_define_method( cJavaClass,  "new_instance",    class_new_instance,     1 );
 
@@ -69,11 +68,11 @@ VALUE juby_get_class(VALUE self, VALUE name) {
 	return Data_Wrap_Struct( cJavaClass, 0, object_free, result );
 }
 
-VALUE object_call_method(VALUE self, VALUE methodName, VALUE args) {
+VALUE juby_bridge(VALUE self, VALUE sym, VALUE args) {
 	
 	JNIEnv *env = attachJNIEnv();
 
-	jstring methodNameUtf = (*env)->NewStringUTF( env, RSTRING( methodName )->ptr );
+	jstring symUtf = (*env)->NewStringUTF( env, RSTRING( sym )->ptr );
 	checkException( env );
 
 	jobject javaObject; 
@@ -89,37 +88,12 @@ VALUE object_call_method(VALUE self, VALUE methodName, VALUE args) {
 		checkException( env );
 	}
 
-	jobject result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_CALLMETHOD_METHOD, javaObject, methodNameUtf, javaArgs );
+	jobject result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_BRIDGE_METHOD, javaObject, symUtf, javaArgs );
 	checkException( env );	
-
-	VALUE value = coerce_to_ruby_type( env, result );
-	
-	detachJNIEnv();
-	
-	return value;
-}
-
-
-VALUE object_access_property(VALUE self, VALUE propertyName) {
-	
-	DEBUG_ENTER( "object_access_property(...)" );
-	
-	JNIEnv *env = attachJNIEnv();
-	
-	jstring propertyNameUtf = (*env)->NewStringUTF( env, RSTRING( propertyName )->ptr );
-	checkException( env );
-
-	jobject javaObject; 
-	Data_Get_Struct( self, struct _jobject, javaObject );
-	
-	jobject result = (*env)->CallObjectMethod( env, JUBY_INSTANCE, JUBY_ACCESSPROPERTY_METHOD, javaObject, propertyNameUtf, 0 );
-	checkException( env );
 	
 	VALUE value = coerce_to_ruby_type( env, result );
 	
 	detachJNIEnv();
-	
-	DEBUG_EXIT( "object_access_property(...)" );
 	
 	return value;
 }
