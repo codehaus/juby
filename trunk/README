@@ -2,7 +2,13 @@
 Juby - an unholy mix of Java and Ruby
 =====================================
 
-Build Notes for OSX:
+1) General Build Notes:
+
+  Building Juby requires Ruby Gems, which can be obtained from:
+
+    http://rubyforge.org/frs/?group_id=126
+
+1.1) Build Notes for OSX:
 
   On my system, I have to set:
 
