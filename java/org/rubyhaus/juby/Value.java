@@ -40,8 +40,7 @@ public class Value {
 
 		public static final Type NIL = new Type(0x01, "T_NIL", Void.TYPE);
 
-		public static final Type OBJECT = new Type(0x02, "T_OBJECT",
-				Object.class);
+		public static final Type OBJECT = new Type(0x02, "T_OBJECT", Object.class);
 
 		public static final Type CLASS = new Type(0x03, "T_CLASS", Class.class);
 
@@ -51,8 +50,7 @@ public class Value {
 
 		public static final Type FLOAT = new Type(0x06, "T_FLOAT", Float.class);
 
-		public static final Type STRING = new Type(0x07, "T_STRING",
-				String.class);
+		public static final Type STRING = new Type(0x07, "T_STRING", String.class);
 
 		public static final Type REGEXP = new Type(0x08, "T_REGEXP", null);
 
@@ -62,25 +60,21 @@ public class Value {
 
 		public static final Type HASH = new Type(0x0b, "T_HASH", Map.class);
 
-		public static final Type STRUCT = new Type(0x0c, "T_STRUCT",
-				Object.class);
+		public static final Type STRUCT = new Type(0x0c, "T_STRUCT", Object.class);
 
-		public static final Type BIGNUM = new Type(0x0d, "T_BIGNUM",
-				BigInteger.class);
+		public static final Type BIGNUM = new Type(0x0d, "T_BIGNUM", BigInteger.class);
 
 		public static final Type FILE = new Type(0x0e, "T_FILE", File.class);
 
 		public static final Type TRUE = new Type(0x20, "T_TRUE", Boolean.class);
 
-		public static final Type FALSE = new Type(0x21, "T_FALSE",
-				Boolean.class);
+		public static final Type FALSE = new Type(0x21, "T_FALSE", Boolean.class);
 
 		public static final Type DATA = new Type(0x22, "T_DATA", Object.class);
 
 		public static final Type MATCH = new Type(0x23, "T_MATCH", null);
 
-		public static final Type SYMBOL = new Type(0x24, "T_SYMBOL",
-				String.class);
+		public static final Type SYMBOL = new Type(0x24, "T_SYMBOL", String.class);
 
 		public static final Type BLKTAG = new Type(0x3b, "T_BLKTAG", null);
 
@@ -150,6 +144,9 @@ public class Value {
 	private native Object unwrapJavaObject();
 
 	public String to_s() {
+		if ( isInherentlyJava() ) {
+			return getJavaObject().toString();
+		}
 		return callStringMethod("to_s", EMPTY_OBJECT_ARRAY);
 	}
 
