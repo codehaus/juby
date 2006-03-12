@@ -3,13 +3,18 @@ require 'mkmf'
 
 Logging::logfile( 'extconf.log' )
 
-is_macosx = (/darwin/ =~ RUBY_PLATFORM)
-
-if ( is_macosx ) 
-	$DLDFLAGS='-framework JavaVM'
-	$LIBPATH << '/System/Library/Frameworks/JavaVM.framework/Libraries'
-	$CPPFLAGS << ' -I"/System/Library/Frameworks/JavaVM.framework/Headers/"'
+case RUBY_PLATFORM
+  when /darwin/
+    $DLDFLAGS='-framework JavaVM'
+    $LIBPATH << '/System/Library/Frameworks/JavaVM.framework/Libraries'
+    $CPPFLAGS << ' -I"/System/Library/Frameworks/JavaVM.framework/Headers/"'
+  when /linux/
+    $CPPFLAGS << " -I\"#{ENV['JAVA_HOME']}/include\" -I\"#{ENV['JAVA_HOME']}/include/linux\""
+		# TODO: for i386 the lib path should be /jre/lib/i386/server
+    $LIBPATH << "#{ENV['JAVA_HOME']}/jre/lib/amd64/server"
+		$LIBS << " -ljvm"
 end
+
 
 #topdir = arg_config( '--topdir' )
 #juby_jar_path = File.dirname( topdir ) + File::SEPARATOR + "java" + File::SEPARATOR + "juby.jar"
