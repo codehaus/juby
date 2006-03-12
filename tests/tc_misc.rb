@@ -4,6 +4,12 @@ require 'test/unit'
 require 'juby'
 
 class TestStatic < Test::Unit::TestCase
+  def test_class
+    Java::initialize_vm
+    jls = Java::java.lang.String
+    assert_not_nil( jls );
+    assert_equal( "class java.lang.String", jls.to_s )
+  end
   def test_java_version_property
     Java::initialize_vm
     props = Java::java.lang.System.properties   

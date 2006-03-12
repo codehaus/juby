@@ -33,12 +33,13 @@ module Java
     end
   end
 
-  class Class < Object
-    def new(*args) 
-      new_instance( args )
-    end
-  end
 
+end
+
+module Juby_java_lang_Class 
+  def new(*args) 
+    new_instance( args )
+  end
 end
 
 module Juby_java_util_Map
