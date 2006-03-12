@@ -33,9 +33,9 @@ jclass VALUE_CLASS;
 jmethodID VALUE_CONSTRUCTOR;
 jmethodID VALUE_GETVALUE_METHOD;
 
-void setUpJNIUtils() {
+void setUpJNIUtils(const char *classpath) {
 	DEBUG_ENTER( "setUpJNIUtils()" );
-	JNIEnv *env = setUpJVM( 0 );
+	JNIEnv *env = setUpJVM( classpath );
 	
 	setUpJavaReflection( env );
 	registerNativeMethods( env );
@@ -52,6 +52,8 @@ JNIEnv *setUpJVM(const char *classpath) {
 	
 	if ( classpath ) {
 		customClasspath = malloc( strlen( CLASSPATH_PREFIX JUBY_JAR_PATH ) + strlen( classpath ) + 1 );
+		// TODO: The path separator char should be grabbed off 
+		// File.class static field instead of assuming ':'
 		sprintf( customClasspath, CLASSPATH_PREFIX JUBY_JAR_PATH ":%s", classpath );
 		options[0].optionString = customClasspath;
 	} else {

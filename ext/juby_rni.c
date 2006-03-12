@@ -34,8 +34,14 @@ void setUpRNI() {
 
 VALUE juby_initialize_vm(VALUE self, VALUE classpath) {
 	DEBUG_ENTER( "juby_initialize_vm(...)" );
-	// TODO: pass in custom classpath
-	setUpJNIUtils();
+	
+	const char *classpathChars = 0;
+	
+	if ( classpath != Qnil ) {
+		classpathChars = RSTRING( classpath )->ptr;
+	}
+	
+	setUpJNIUtils( classpathChars );
 	DEBUG_EXIT( "juby_initialize_vm(...)" );
 }
 

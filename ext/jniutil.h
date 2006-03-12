@@ -12,7 +12,7 @@ typedef struct JavaPrimitiveClass {
 	jmethodID primitiveExtractor;
 } JavaPrimitiveClass;
 
-void setUpJNIUtils();
+void setUpJNIUtils(const char* classpath);
 
 JNIEnv *setUpJVM(const char *classpath);
 
