@@ -1,28 +1,17 @@
 package org.rubyhaus.juby;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Arrays;
 
 public class Juby {
 
 	private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-
-	public static boolean isClass(String name) {
-		try {
-			Class.forName(name);
-			return true;
-		} catch (Exception e) {
-			// ignore
-		}
-		return false;
-	}
 
 	public static Class getClass(String name) {
 		try {

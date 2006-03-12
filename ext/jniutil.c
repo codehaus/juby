@@ -89,7 +89,7 @@ void setUpJavaReflection(JNIEnv *env) {
 	setUpJavaPrimitiveClass( env, &JAVA_FLOAT,   "java/lang/Float",   "floatValue",   "()F" );
 	setUpJavaPrimitiveClass( env, &JAVA_DOUBLE,  "java/lang/Double",  "doubleValue",  "()D" );	
 	
-	CLASS_CLASS = (*env)->FindClass( env, "java/lang/Class" );
+	CLASS_CLASS = (*env)->NewGlobalRef( env, (*env)->FindClass( env, "java/lang/Class" ) );
 	checkException( env );
 	
 	CLASS_GETNAME_METHOD = (*env)->GetMethodID( env, CLASS_CLASS, "getName", "()Ljava/lang/String;" );
@@ -102,8 +102,7 @@ void setUpJavaReflection(JNIEnv *env) {
 	checkException( env );
 
 
-	//TODO: Get a GlobalRef for this
-	JUBY_CLASS = (*env)->FindClass( env, "org/rubyhaus/juby/Juby" );
+	JUBY_CLASS = (*env)->NewGlobalRef( env, (*env)->FindClass( env, "org/rubyhaus/juby/Juby" ) );
 	checkException( env );
 
 	JUBY_ISCLASS_METHOD        = (*env)->GetStaticMethodID( env, JUBY_CLASS, "isClass",        "(Ljava/lang/String;)Z" );
@@ -125,9 +124,8 @@ void setUpJavaReflection(JNIEnv *env) {
 	checkException( env );
 
 	//TODO: Get a GlobalRef for this
-	VALUE_CLASS = (*env)->FindClass( env, "org/rubyhaus/juby/Value" );
+	VALUE_CLASS = (*env)->NewGlobalRef( env, (*env)->FindClass( env, "org/rubyhaus/juby/Value" ) );
 	checkException( env );
-
 
 	VALUE_CONSTRUCTOR = (*env)->GetMethodID( env, VALUE_CLASS, "<init>", "(J)V" );
 	checkException( env );
@@ -175,7 +173,6 @@ void setUpJavaPrimitiveClass(JNIEnv *env, JavaPrimitiveClass *primitiveHolder, c
 	DEBUG_ENTER( "setUpJavaPrimitiveClass(...)" );
 	
 	primitiveHolder->javaClass = (*env)->FindClass( env, classSpec );  
-	
 	checkException( env );
 	
 	if ( name && signature ) {
@@ -257,14 +254,14 @@ void checkException(JNIEnv *env) {
 }
 
 void dumpJavaClass(JNIEnv *env, jclass javaClass) {
-	
 	jstring name = (*env)->CallObjectMethod( env, javaClass, CLASS_GETNAME_METHOD );
+	checkException( env );
 	
 	const char *nameCstr = (*env)->GetStringUTFChars( env, name, JNI_FALSE );
-	
 	checkException( env );
 	
 	printf( "[class: %s]\n", nameCstr );
 	
 	(*env)->ReleaseStringUTFChars( env, name, nameCstr );
+	checkException( env );
 }
