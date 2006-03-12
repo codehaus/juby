@@ -21,12 +21,14 @@ jmethodID CLASS_GETINTERFACES_METHOD;
 
 jclass JUBY_CLASS;
 
-jmethodID JUBY_ISCLASS_METHOD;
+jmethodID JUBY_CONSTRUCTOR;
 jmethodID JUBY_GETCLASS_METHOD;
 jmethodID JUBY_CALLMETHOD_METHOD;
 jmethodID JUBY_NEWINSTANCE_METHOD;
 jmethodID JUBY_ACCESSPROPERTY_METHOD;
 jmethodID JUBY_OBJECTTOS_METHOD;
+
+jobject JUBY_INSTANCE;
 
 jclass VALUE_CLASS;
 jmethodID VALUE_CONSTRUCTOR;
@@ -78,10 +80,13 @@ JNIEnv *setUpJVM(const char *classpath) {
 }
 
 void setUpJavaReflection(JNIEnv *env) {
-	
 	setUpJavaPrimitives( env );
+	
 	setUpJavaClassClass( env );
+	
 	setUpJavaJubyClass(  env );
+	setUpJubyInstance( env );
+	
 	setUpJavaValueClass( env );
 }
 
@@ -114,22 +119,27 @@ void setUpJavaJubyClass(JNIEnv* env) {
 	JUBY_CLASS = (*env)->NewGlobalRef( env, (*env)->FindClass( env, "org/rubyhaus/juby/Juby" ) );
 	checkException( env );
 
-	JUBY_ISCLASS_METHOD        = (*env)->GetStaticMethodID( env, JUBY_CLASS, "isClass",        "(Ljava/lang/String;)Z" );
+	JUBY_CONSTRUCTOR           = (*env)->GetMethodID( env, JUBY_CLASS, "<init>",         "()V" );
 	checkException( env );
 	
-	JUBY_GETCLASS_METHOD       = (*env)->GetStaticMethodID( env, JUBY_CLASS, "getClass",       "(Ljava/lang/String;)Ljava/lang/Class;" );
+	JUBY_GETCLASS_METHOD       = (*env)->GetMethodID( env, JUBY_CLASS, "getClass",       "(Ljava/lang/String;)Ljava/lang/Class;" );
 	checkException( env );
 	
-	JUBY_CALLMETHOD_METHOD     = (*env)->GetStaticMethodID( env, JUBY_CLASS, "callMethod",     "(Ljava/lang/Object;Ljava/lang/String;[Lorg/rubyhaus/juby/Value;)Ljava/lang/Object;" );
+	JUBY_CALLMETHOD_METHOD     = (*env)->GetMethodID( env, JUBY_CLASS, "callMethod",     "(Ljava/lang/Object;Ljava/lang/String;[Lorg/rubyhaus/juby/Value;)Ljava/lang/Object;" );
 	checkException( env );
 	
-	JUBY_NEWINSTANCE_METHOD    = (*env)->GetStaticMethodID( env, JUBY_CLASS, "newInstance",     "(Ljava/lang/Class;[Lorg/rubyhaus/juby/Value;)Ljava/lang/Object;" );
+	JUBY_NEWINSTANCE_METHOD    = (*env)->GetMethodID( env, JUBY_CLASS, "newInstance",     "(Ljava/lang/Class;[Lorg/rubyhaus/juby/Value;)Ljava/lang/Object;" );
 	checkException( env );
 	
-	JUBY_ACCESSPROPERTY_METHOD = (*env)->GetStaticMethodID( env, JUBY_CLASS, "accessProperty", "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;" );
+	JUBY_ACCESSPROPERTY_METHOD = (*env)->GetMethodID( env, JUBY_CLASS, "accessProperty", "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;" );
 	checkException( env );
 	
-	JUBY_OBJECTTOS_METHOD      = (*env)->GetStaticMethodID( env, JUBY_CLASS, "objectToS",      "(Ljava/lang/Object;)Ljava/lang/String;" );
+	JUBY_OBJECTTOS_METHOD      = (*env)->GetMethodID( env, JUBY_CLASS, "objectToS",      "(Ljava/lang/Object;)Ljava/lang/String;" );
+	checkException( env );
+}
+
+void setUpJubyInstance(JNIEnv *env) {
+	JUBY_INSTANCE = (*env)->NewGlobalRef( env, (*env)->NewObject( env, JUBY_CLASS, JUBY_CONSTRUCTOR ) );
 	checkException( env );
 }
 

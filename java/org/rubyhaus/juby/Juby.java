@@ -12,8 +12,12 @@ import java.util.Map;
 public class Juby {
 
 	private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+	
+	public Juby() {
+		// intentionally left blank
+	}
 
-	public static Class getClass(String name) {
+	public Class getClass(String name) {
 		try {
 			return Class.forName(name);
 		} catch (Exception e) {
@@ -27,7 +31,7 @@ public class Juby {
 		return null;
 	}
 
-	public static String objectToS(Object object) {
+	public String objectToS(Object object) {
 		if (object != null) {
 			return object.toString();
 		}
@@ -35,7 +39,7 @@ public class Juby {
 		return null;
 	}
 
-	public static Object newInstance(Class javaClass, Value[] args) {
+	public Object newInstance(Class javaClass, Value[] args) {
 		Constructor[] constructors = javaClass.getConstructors();
 		CONSTRUCTORS: for (int i = 0; i < constructors.length; ++i) {
 			int modifiers = constructors[i].getModifiers();
@@ -66,7 +70,7 @@ public class Juby {
 		return null;
 	}
 
-	public static Object callMethod(Object self, String name, Value[] args) {
+	public Object callMethod(Object self, String name, Value[] args) {
 		Method method = findMethod(self.getClass(), name, args);
 
 		Object result = null;
@@ -97,7 +101,7 @@ public class Juby {
 	 * 
 	 * @return An array of <code>Class</code> the same size as the passed in parameters.
 	 */
-	private static Class[] getPhaseOneParameterTypes(Value[] parameters) {
+	private Class[] getPhaseOneParameterTypes(Value[] parameters) {
 		Class[] types = new Class[ parameters.length ];
 		
 		for ( int i = 0 ; i < parameters.length ; ++i ) {
@@ -120,7 +124,7 @@ public class Juby {
 	 * @return <code>true</code> if the parameter types match as far as possible, otherwise
 	 *         <code>false</code>.
 	 */
-	private static boolean isPhaseOneMatch(Class[] parameterTypes, Class[] phaseOneParameterTypes) {
+	private boolean isPhaseOneMatch(Class[] parameterTypes, Class[] phaseOneParameterTypes) {
 		for ( int i = 0 ; i < parameterTypes.length ; ++i ) {
 			if ( phaseOneParameterTypes[i] != null ) {
 				if ( ! parameterTypes[i].isAssignableFrom( phaseOneParameterTypes[i] ) ) {
@@ -132,7 +136,7 @@ public class Juby {
 		return true;
 	}
 	
-	private static boolean isPhaseTwoMatch(Class[] parameterTypes, Class[] phaseOneParameterTypes) {
+	private boolean isPhaseTwoMatch(Class[] parameterTypes, Class[] phaseOneParameterTypes) {
 		for ( int i = 0 ; i < parameterTypes.length ; ++i ) {
 			if ( phaseOneParameterTypes[i] == null ) {
 				if ( ! isCoercibleFromRuby( parameterTypes[i] ) ) {
@@ -144,12 +148,12 @@ public class Juby {
 		return true;
 	}
 	
-	private static boolean isCoercibleFromRuby(Class javaType) {
+	private boolean isCoercibleFromRuby(Class javaType) {
 		// if string, double, float, etc, true!
 		return false;
 	}
 
-	private static Object[] coerceParameters(Value[] args, Class[] paramTypes) {
+	private Object[] coerceParameters(Value[] args, Class[] paramTypes) {
 		Object[] javaArgs = new Object[args.length];
 
 		for (int i = 0; i < javaArgs.length; ++i) {
@@ -161,7 +165,7 @@ public class Juby {
 		return javaArgs;
 	}
 
-	protected static Method findMethod(Class selfClass, String name, Value[] args) {
+	protected Method findMethod(Class selfClass, String name, Value[] args) {
 		Method[] methods = selfClass.getMethods();
 
 		METHODS: for (int i = 0; i < methods.length; ++i) {
@@ -189,7 +193,7 @@ public class Juby {
 	// ----------------------------------------------------------------------
 	// ----------------------------------------------------------------------
 
-	public static Object accessProperty(Object object, String name) {
+	public Object accessProperty(Object object, String name) {
 
 		if ("jclass".equals(name)) {
 			return object.getClass();
