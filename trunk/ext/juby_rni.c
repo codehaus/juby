@@ -48,16 +48,10 @@ VALUE juby_get_class(VALUE self, VALUE name) {
 	JNIEnv *env = attachJNIEnv();
 	
 	jstring nameUtf = (*env)->NewStringUTF( env, RSTRING( name )->ptr );
-	
 	checkException( env );
-	
 
 	jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_GETCLASS_METHOD, nameUtf );
 	checkException( env );
-
-	if ( (*env)->ExceptionOccurred( env ) ) {
-		(*env)->ExceptionDescribe( env );
-	}
 
 	if ( ! result ) {
 		detachJNIEnv();
@@ -66,11 +60,13 @@ VALUE juby_get_class(VALUE self, VALUE name) {
 	}
 
 	result = (*env)->NewGlobalRef( env, result );
+	checkException( env );
 
-	//TODO: Need a method to DeleteGlobalRef when we're done with this class
 	detachJNIEnv();
+	
 	DEBUG_EXIT( "juby_get_class(...)" );
-	return Data_Wrap_Struct( cJavaClass, 0, 0, result );
+	
+	return Data_Wrap_Struct( cJavaClass, 0, object_free, result );
 }
 
 VALUE object_call_method(VALUE self, VALUE methodName, VALUE args) {
@@ -78,23 +74,23 @@ VALUE object_call_method(VALUE self, VALUE methodName, VALUE args) {
 	JNIEnv *env = attachJNIEnv();
 
 	jstring methodNameUtf = (*env)->NewStringUTF( env, RSTRING( methodName )->ptr );
+	checkException( env );
 
 	jobject javaObject; 
 	Data_Get_Struct( self, struct _jobject, javaObject );
 
 	int numArgs = NUM2INT( rb_funcall( args,  rb_intern( "size" ), 0 ) );
 	jobjectArray javaArgs = (*env)->NewObjectArray( env, numArgs, VALUE_CLASS, 0 );
+	checkException( env );
 
 	int i;
 	for ( i = 0 ; i < numArgs; ++i ) {
 		(*env)->SetObjectArrayElement( env, javaArgs, i, wrap_for_java( env, rb_ary_entry( args, i ) ) );
+		checkException( env );
 	}
 
 	jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_CALLMETHOD_METHOD, javaObject, methodNameUtf, javaArgs );
-
-	if ( (*env)->ExceptionOccurred( env ) ) {
-		(*env)->ExceptionDescribe( env );
-	}
+	checkException( env );	
 
 	VALUE value = coerce_to_ruby_type( env, result );
 	
@@ -111,16 +107,14 @@ VALUE object_access_property(VALUE self, VALUE propertyName) {
 	JNIEnv *env = attachJNIEnv();
 	
 	jstring propertyNameUtf = (*env)->NewStringUTF( env, RSTRING( propertyName )->ptr );
+	checkException( env );
 
 	jobject javaObject; 
 	Data_Get_Struct( self, struct _jobject, javaObject );
 	
 	jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_ACCESSPROPERTY_METHOD, javaObject, propertyNameUtf, 0 );
+	checkException( env );
 	
-	if ( (*env)->ExceptionOccurred( env ) ) {
-		(*env)->ExceptionDescribe( env );
-	}
-
 	VALUE value = coerce_to_ruby_type( env, result );
 	
 	detachJNIEnv();
@@ -166,19 +160,19 @@ VALUE class_new_instance(VALUE self, VALUE args) {
 	Data_Get_Struct( self, struct _jobject, javaClass );
 
 	int numArgs = NUM2INT( rb_funcall( args,  rb_intern( "size" ), 0 ) );
+	
 	jobjectArray javaArgs = (*env)->NewObjectArray( env, numArgs, VALUE_CLASS, 0 );
+	checkException( env );
 
 	int i;
 	for ( i = 0 ; i < numArgs; ++i ) {
 		(*env)->SetObjectArrayElement( env, javaArgs, i, wrap_for_java( env, rb_ary_entry( args, i ) ) );
+		checkException( env );
 	}
 
 	jobject result = (*env)->CallStaticObjectMethod( env, JUBY_CLASS, JUBY_NEWINSTANCE_METHOD, javaClass, javaArgs );
+	checkException( env );
 
-	if ( (*env)->ExceptionOccurred( env ) ) {
-		(*env)->ExceptionDescribe( env );
-	}
-	
 	VALUE value = coerce_to_ruby_type( env, result );
 	
 	detachJNIEnv();
