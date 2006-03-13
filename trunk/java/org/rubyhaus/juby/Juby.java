@@ -3,6 +3,7 @@ package org.rubyhaus.juby;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -12,6 +13,9 @@ import java.util.Map;
 public class Juby {
 
 	private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+	private static final Value[] EMPTY_VALUE_ARRAY = new Value[0];
+	private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
+	private static final Class[] STRING_CLASS_ARRAY = new Class[] { String.class };
 	
 	public Juby() {
 		// intentionally left blank
@@ -80,7 +84,7 @@ public class Juby {
 	// ----------------------------------------
 	// ----------------------------------------
 
-	public Object bridge(Object object, String sym, Value[] args) {
+	public Object bridge(Object object, String sym, Value[] args) throws Exception {
 		Object value = null;
 		
 		if ( sym.endsWith( "=" ) ) {
@@ -92,11 +96,11 @@ public class Juby {
 		return value;
 	}
 	
-	protected Object bridgeAssignment(Object object, String sym, Value[] args) {
+	protected Object bridgeAssignment(Object object, String sym, Value[] args) throws Exception {
 		return null;
 	}
 	
-	protected Object bridgeAccess(Object object, String sym, Value[] args) {
+	protected Object bridgeAccess(Object object, String sym, Value[] args) throws Exception {
 		Object value = null;
 		
 		if ( args.length == 0 ) {
@@ -108,85 +112,232 @@ public class Juby {
 		return value;
 	}
 	
-	protected Object bridgeSimpleAccess(Object object, String sym) {
+	protected Object bridgeSimpleAccess(Object self, String sym) throws Exception {
 
-		if ("class".equals(sym)) {
-			return object.getClass();
+		if ( "class".equals( sym ) ) {
+			return self.getClass();
 		}
 
-		Class objectClass = null;
-
-		if (object instanceof Class) {
-			objectClass = (Class) object;
-		} else {
-			objectClass = object.getClass();
-		}
-		
 		// Special cases are required here due to some oddness (bug?)
 		// about how accessing anonymous inner-class implementations
 		// of Iterator that some Java collections return from iterator().
 
-		if ("iterator".equals(sym) && object instanceof Collection) {
-			return ((Collection) object).iterator();
+		if ( "iterator".equals( sym ) && self instanceof Collection ) {
+			return ((Collection)self).iterator();
 		}
 
-		if ("hasNext".equals(sym) && object instanceof Iterator) {
-			return ((Iterator) object).hasNext() ? Boolean.TRUE : Boolean.FALSE;
+		if ( "hasNext".equals( sym ) && self instanceof Iterator ) {
+			return ((Iterator)self).hasNext() ? Boolean.TRUE : Boolean.FALSE;
 		}
 
-		if ("next".equals(sym) && object instanceof Iterator) {
-			return ((Iterator) object).next();
+		if ( "next".equals( sym ) && self instanceof Iterator ) {
+			return ((Iterator)self).next();
 		}
 
-		if ("key".equals(sym) && object instanceof Map.Entry) {
-			return ((Map.Entry) object).getKey();
+		if ( "key".equals( sym ) && self instanceof Map.Entry ) {
+			return ((Map.Entry)self).getKey();
 		}
 
-		if ("value".equals(sym) && object instanceof Map.Entry) {
-			return ((Map.Entry) object).getValue();
+		if ( "value".equals( sym ) && self instanceof Map.Entry ) {
+			return ((Map.Entry)self).getValue();
 		}
-
+		
+		Accessor accessor = findAccessor( self, sym );
+		
+		if ( accessor != null ) {
+			return accessor.access();
+		}
+		
+		// TODO: throw something to demonstrate that we weren't
+		// able to find diddly to call.
+		return null;
+	}
+	
+	private Accessor findAccessor(Object self, String sym) {
+		Accessor accessor = findJavaBeanPropertyAccessor( self, sym );
+		
+		if ( accessor == null ) {
+			accessor = findFieldAccessor( self, sym );
+		}
+		
+		if ( accessor == null ) {
+			accessor = findNoArgMethodAccessor( self, sym );
+		}
+		
+		if ( accessor == null ) {
+			accessor = findGetWithArgAccessor( self, sym );
+		}
+		
+		return accessor;
+	}
+	
+	private Accessor findJavaBeanPropertyAccessor(Object self, String sym) {
+		Class selfClass = self.getClass();
+		
+		String javaName = makeJavaName( sym, true );
+		
+		String accessorMethodName = "get" + javaName;
+		
 		try {
-			Field field = objectClass.getField(sym);
-			return field.get(object);
-		} catch (Exception e) {
+			Method m = selfClass.getMethod( accessorMethodName, EMPTY_CLASS_ARRAY );
+			if ( ! isStatic( m ) ) {
+				return new JavaBeanPropertyAccessor( self, m );
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		}
+		
+		accessorMethodName = "is" + javaName;
+		
+		try {
+			Method m = selfClass.getMethod( accessorMethodName, EMPTY_CLASS_ARRAY );
+			if ( ! isStatic( m ) ) {
+				return new JavaBeanPropertyAccessor( self, m );
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		}
+		
+		if ( self instanceof Class ) {
+		
+			accessorMethodName = "get" + javaName;
+			
 			try {
-				Method method = objectClass.getMethod(sym, new Class[0]);
-				Object value = method.invoke(object, EMPTY_OBJECT_ARRAY);
-				return value;
-			} catch (Exception e2) {
-				try {
-					String accessorName = "get"
-							+ sym.substring(0, 1).toUpperCase()
-							+ sym.substring(1);
-					Method method = objectClass.getMethod(accessorName,
-							new Class[0]);
-					return method.invoke(object, EMPTY_OBJECT_ARRAY);
-				} catch (Exception e3) {
-					try {
-						Method method = objectClass.getMethod("get",
-								new Class[] { Object.class });
-						return method.invoke(object, new Object[] { sym });
-					} catch (Exception e4) {
-						if (objectClass == object) {
-							try {
-								objectClass = object.getClass();
-								String accessorName = "get"
-										+ sym.substring(0, 1).toUpperCase()
-										+ sym.substring(1);
-								Method method = objectClass.getMethod(
-										accessorName, new Class[0]);
-								return method
-										.invoke(object, EMPTY_OBJECT_ARRAY);
-							} catch (Exception e5) {
-								// ignore
-							}
-						}
-					}
+				Method m = ((Class)self).getMethod( accessorMethodName, EMPTY_CLASS_ARRAY );
+				if ( isStatic( m ) ) {
+					return new JavaBeanPropertyAccessor( self, m );
 				}
+			} catch (SecurityException e) {
+			} catch (NoSuchMethodException e) {
+			}
+			
+			accessorMethodName = "is" + javaName ;
+			
+			try {
+				Method m = ((Class)self).getMethod( accessorMethodName, EMPTY_CLASS_ARRAY );
+				if ( isStatic( m ) ) {
+					return new JavaBeanPropertyAccessor( self, m );
+				}
+			} catch (SecurityException e) {
+			} catch (NoSuchMethodException e) {
 			}
 		}
-		return null;	
+		
+		return null;
+	}
+	
+	private Accessor findGetWithArgAccessor(Object self, String sym) {
+		Class selfClass = self.getClass();
+		
+		try {
+			Method m = selfClass.getMethod( "get", STRING_CLASS_ARRAY );
+			if ( ! isStatic( m ) ) {
+				return new GetWithArgAccessor( self, m, sym );
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		}
+		
+		if ( self instanceof Class ) {
+			try {
+				Method m = ((Class)self).getMethod( "get", STRING_CLASS_ARRAY );
+				if ( isStatic( m ) ) {
+					return new GetWithArgAccessor( self, m, sym );
+				}
+			} catch (SecurityException e) {
+			} catch (NoSuchMethodException e) {
+			}
+		}
+		
+		return null;
+	}
+	
+	private Accessor findFieldAccessor(Object self, String sym) {
+		Class selfClass = self.getClass();
+		
+		String fieldName = makeJavaName( sym, false );
+		
+		try {
+			Field f = selfClass.getField( fieldName );
+			if ( ! isStatic( f ) ) {
+				return new FieldAccessor( self, f );
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchFieldException e) {
+		}
+		
+		if ( self instanceof Class ) {
+			try {
+				Field f = ((Class)self).getField( fieldName );
+				if ( isStatic( f ) ) {
+					return new FieldAccessor( self, f );
+				}
+			} catch (SecurityException e) {
+			} catch (NoSuchFieldException e) {
+			}
+		}
+		
+		return null;
+	}
+	
+	private Accessor findNoArgMethodAccessor(Object self, String sym) {
+		Class selfClass = self.getClass();
+		
+		String methodName = makeJavaName( sym, false );
+		
+		try {
+			Method m = selfClass.getMethod( methodName, EMPTY_CLASS_ARRAY );
+			if ( ! isStatic( m ) ) {
+				return new NoArgMethodAccessor( self, m );
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		}
+		
+		if ( self instanceof Class ) {
+			try {
+				Method m = ((Class)self).getMethod( methodName, EMPTY_CLASS_ARRAY );
+				if ( isStatic( m ) ) {
+					return new NoArgMethodAccessor( self, m );
+				}
+			} catch (SecurityException e) {
+			} catch (NoSuchMethodException e) {
+			}
+		}
+		
+		return null;
+	}
+	
+	private boolean isStatic(Member member) {
+		int modifiers = member.getModifiers();
+		
+		return Modifier.isPublic( modifiers) && Modifier.isStatic( modifiers);
+	}
+	
+	private String makeJavaName(String name, boolean initialCapital) {
+		int len = name.length();
+		
+		StringBuffer javaName = new StringBuffer();
+		
+		boolean upperCaseNext = initialCapital;
+		
+		for ( int i = 0 ; i < len ; ++i ) {
+			char c = name.charAt( i );
+			
+			if ( name.charAt( i ) == '_' ) {
+				upperCaseNext = true;
+				continue;
+			} 
+			
+			if ( upperCaseNext ) {
+				javaName.append( Character.toUpperCase( c ) );
+				upperCaseNext = false;
+			} else {
+				javaName.append( c );
+			}
+		}
+		
+		return javaName.toString();
 	}
 	
 	public Object bridgeComplexAccess(Object self, String sym, Value[] args) {

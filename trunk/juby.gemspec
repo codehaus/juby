@@ -28,6 +28,11 @@ spec = Gem::Specification.new do | s |
     'java/org/rubyhaus/juby/Juby.java',
     'java/org/rubyhaus/juby/Ary.java',
     'java/org/rubyhaus/juby/Value.java',
+    'java/org/rubyhaus/juby/Accessor.java',
+    'java/org/rubyhaus/juby/JavaBeanPropertyAccessor.java',
+    'java/org/rubyhaus/juby/GetWithArgAccessor.java',
+    'java/org/rubyhaus/juby/FieldAccessor.java',
+    'java/org/rubyhaus/juby/NoArgMethodAccessor.java',
   ]
   s.extensions = [ 'java/extconf.rb', 'ext/extconf.rb' ]
   s.test_files   = [ 
